@@ -1,0 +1,14 @@
+#!/bin/sh
+# Background DHCP on eth0. Never blocks the console: rc.sysinit starts this
+# detached, a missing NIC exits at once, and udhcpc gives up the foreground
+# after a bounded number of tries (-t/-T) and keeps retrying in the
+# background (-b, -A). Log: /run/nookvm-net.log.
+log=/run/nookvm-net.log
+
+if [ ! -e /sys/class/net/eth0 ]; then
+	echo "nookvm-net: no eth0, DHCP skipped" >>"$log"
+	exit 0
+fi
+ip link set eth0 up
+echo "nookvm-net: DHCP on eth0" >>"$log"
+exec udhcpc -i eth0 -b -t 5 -T 3 -A 20 -s /usr/share/udhcpc/default.script >>"$log" 2>&1

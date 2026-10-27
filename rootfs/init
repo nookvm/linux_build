@@ -1,0 +1,25 @@
+#!/bin/sh
+# NookVM initramfs /init (PID 1, started via rdinit=/init).
+# Mount the basic kernel filesystems, then exec BusyBox init so PID 1 reaps
+# orphans and respawns the serial shell (/etc/inittab).
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+mount -t proc -o nosuid,nodev,noexec proc /proc
+mount -t sysfs -o nosuid,nodev,noexec sysfs /sys
+if ! mount -t devtmpfs -o nosuid,mode=0755 devtmpfs /dev; then
+	# No devtmpfs: provide the nodes the console shell needs.
+	[ -e /dev/null ] || mknod -m 0666 /dev/null c 1 3
+	[ -e /dev/ttyS0 ] || mknod -m 0620 /dev/ttyS0 c 4 64
+	[ -e /dev/ptmx ] || mknod -m 0666 /dev/ptmx c 5 2
+fi
+mkdir -p /dev/pts /dev/shm
+mount -t devpts -o nosuid,noexec,gid=5,mode=0620,ptmxmode=0666 devpts /dev/pts
+mount -t tmpfs -o nosuid,nodev,mode=1777 tmpfs /dev/shm
+mount -t tmpfs -o nosuid,nodev,mode=0755 tmpfs /run
+mkdir -p /run/lock
+
+echo "nookvm: $(uname -r) initramfs ready, starting BusyBox init"
+exec /sbin/init
+# Only reached if init cannot be executed.
+echo "nookvm: exec /sbin/init failed, falling back to /bin/sh" >&2
+exec /bin/sh

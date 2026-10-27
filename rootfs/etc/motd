@@ -1,0 +1,3 @@
+NookVM guest: Alpine Linux minirootfs in RAM (initramfs). Changes are lost
+on reboot. Network: see /run/nookvm-net.log. Packages: apk add <name>.
+

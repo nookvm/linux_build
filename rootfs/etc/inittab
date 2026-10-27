@@ -1,0 +1,9 @@
+# NookVM BusyBox init table (replaces Alpine's OpenRC inittab).
+::sysinit:/etc/nookvm/rc.sysinit
+
+# Serial console login shell, respawned whenever it exits.
+ttyS0::respawn:-/bin/sh
+
+::ctrlaltdel:/sbin/reboot
+::shutdown:/bin/sync
+::restart:/sbin/init
